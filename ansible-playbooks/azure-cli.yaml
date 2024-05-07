@@ -1,0 +1,25 @@
+- name: Install Azure CLI
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Add Microsoft repository key
+      ansible.builtin.shell: curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg
+
+    - name: Add Microsoft repository
+      ansible.builtin.shell: echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
+
+    - name: Update apt cache
+      ansible.builtin.command: apt update
+
+    - name: Install Azure CLI
+      ansible.builtin.command: apt install azure-cli -y
+      
+    - name: Get Azure CLI version
+      ansible.builtin.command: az --version
+      register: azure_cli_version_output
+
+    - name: Display Azure CLI version
+      ansible.builtin.debug:
+        msg: "{{ azure_cli_version_output.stdout }}"
+
+

@@ -1,0 +1,152 @@
+# - name: Install Kubernetes
+#   hosts: localhost
+#   become: true
+#   tasks:
+#     - name: Install dependencies
+#       ansible.builtin.package:
+#         name: "{{ item }}"
+#         state: present
+#       loop:
+#         - apt-transport-https
+#         - ca-certificates
+#         - curl
+#         - software-properties-common
+
+#     - name: Add Kubernetes apt-key
+#       ansible.builtin.apt_key:
+#         url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+#         state: present
+
+#     - name: Add Kubernetes apt repository
+#       ansible.builtin.apt_repository:
+#         repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+#         state: present
+
+#     - name: Update apt and install Kubernetes components
+#       ansible.builtin.package:
+#         name: "{{ item }}"
+#         state: present
+#       loop:
+#         - kubelet
+#         - kubeadm
+#         - kubectl
+
+#     - name: Start and enable kubelet service
+#       ansible.builtin.service:
+#         name: kubelet
+#         state: started
+#         enabled: true
+
+
+# - hosts: localhost
+#   become: true
+#   tasks:
+#     - name: Update apt cache
+#       apt:
+#         update_cache: yes
+
+#     - name: Install required packages
+#       apt:
+#         name: 
+#           - apt-transport-https
+#           - curl
+#           - virtualbox
+
+#     - name: Download and install kubectl
+#       command: curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/
+
+#     - name: Download and install minikube
+#       command: curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && mv minikube /usr/local/bin/
+      
+#     - name: Start minikube
+#       command: minikube start --vm-driver=virtualbox
+
+# ---
+# - hosts: localhost
+#   become: true
+#   tasks:
+#     - name: Update apt cache
+#       apt:
+#         update_cache: yes
+
+#     - name: Install required packages
+#       apt:
+#         name: 
+#           - apt-transport-https
+#           - curl
+#           - virtualbox
+
+#     - name: Download and install kubectl
+#       command: >
+#         curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && 
+#         chmod +x kubectl && 
+#         mv kubectl /usr/local/bin/
+      
+#     - name: Download and install minikube
+#       command: >
+#         curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && 
+#         chmod +x minikube && 
+#         mv minikube /usr/local/bin/
+      
+#     - name: Start minikube
+#       command: minikube start --vm-driver=virtualbox
+
+# 
+
+---
+- name: Install Docker and Minikube on Ubuntu
+  hosts: localhost
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: admin123  # your username
+        groups: docker
+        append: yes
+      become: yes
+
+    - name: Enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Minikube
+      shell: |
+        curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+      args:
+        executable: /bin/bash
+
+    - name: Start Minikube
+      shell: |
+        minikube start --driver=docker
+      args:
+        executable: /bin/bash
