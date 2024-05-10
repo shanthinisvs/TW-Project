@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediawiki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mediawiki
+  template:
+    metadata:
+      labels:
+        app: mediawiki
+    spec:
+      containers:
+      - name: mediawiki
+        image: mediawiki
+     
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: admin123
+          - name: MYSQL_DATABASE
+            value: mediawiki
+          - name: MYSQL_USER
+            value: mediawiki
+          - name: MYSQL_PASSWORD
+            value: mediawiki-password
+        ports:
+        - containerPort: 80
+          name: mediawiki
+        resources:
+          requests:
+            memory: "256Mi"   # Request 256 MiB of memory
+            cpu: "100m"        # Request 0.1 CPU cores (100 milliCPU)
+          limits:
+            memory: "512Mi"    # Limit memory usage to 512 MiB
+            cpu: "500m"
+ 
+ 
+### MediaWiki Service
+ 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mediawiki
+spec:
+  selector:
+    app: mediawiki
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
