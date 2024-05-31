@@ -1,3 +1,5 @@
+# media-wiki-deployment.yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,31 +16,21 @@ spec:
     spec:
       containers:
       - name: mediawiki
-        image: mediawiki
-     
-        env:
-          - name: MYSQL_ROOT_PASSWORD
-            value: admin123
-          - name: MYSQL_DATABASE
-            value: mediawiki
-          - name: MYSQL_USER
-            value: mediawiki
-          - name: MYSQL_PASSWORD
-            value: mediawiki-password
+        image: mediawiki:latest
         ports:
         - containerPort: 80
-          name: mediawiki
-        resources:
-          requests:
-            memory: "256Mi"   # Request 256 MiB of memory
-            cpu: "100m"        # Request 0.1 CPU cores (100 milliCPU)
-          limits:
-            memory: "512Mi"    # Limit memory usage to 512 MiB
-            cpu: "500m"
- 
- 
-### MediaWiki Service
- 
+        env:
+        - name: MYSQL_HOST
+          value: "mysql"
+        - name: MYSQL_USER
+          value: "mediawiki"
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mediawiki-mysql-secret
+              key: password
+        - name: MYSQL_DATABASE
+          value: "mediawiki"
 ---
 apiVersion: v1
 kind: Service
@@ -48,6 +40,6 @@ spec:
   selector:
     app: mediawiki
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+  - protocol: TCP
+    port: 80
+    targetPort: 80
